@@ -8,7 +8,7 @@ import java.rmi.server.*;
 
 //C:\Program Files\Java\jdk-14.0.1\bin\javaw.exe -Dfile.encoding=Cp1252 -classpath "C:\Users\DeepiakP\eclipse-work-space\bankingSystem\bin;D:\mysql-connector-java-8.0.21\mysql-connector-java-8.0.21\mysql-connector-java-8.0.21.jar" bankingSystem.SearchServer
 public class SearchQuery extends UnicastRemoteObject implements Search {
-   
+	private static Integer position = 0;
 
     String url ="jdbc:mysql://localhost:3306/banking?serverTimezone=UTC";
 	String user ="root";
@@ -132,6 +132,27 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 
         
     	}
+    @Override
+	public String getFreeServer() throws RemoteException {
+		// TODO Auto-generated method stub
+		Map map=new HashMap();  
+
+	    map.put(1,"1901");  
+	    map.put(2,"1902");  
+	    map.put(3,"1903");  
+	    map.put(4,"1904");  
+	    
+ 
+	    synchronized (position) {
+            if (position > 4) {
+                position = 0;
+            }
+            
+            position++;
+        }
+	    String target =(String) map.get(position);
+        return target;
+	}
         
      
 

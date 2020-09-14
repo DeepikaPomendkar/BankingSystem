@@ -6,8 +6,8 @@ import java.rmi.*;
 public interface Search extends Remote{
 
     //// The method should throw this exception
-
-
+	public String getFreeServer() throws RemoteException;
+	
 
     public String queryAccount(String search) throws RemoteException;
 
