@@ -13,6 +13,11 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
     String url ="jdbc:mysql://localhost:3306/banking?serverTimezone=UTC";
 	String user ="root";
 	String pass ="";
+	
+	String url1 ="jdbc:mysql://localhost:3306/bankingbackup?serverTimezone=UTC";
+	
+	
+	
    
 
     SearchQuery() throws RemoteException{
@@ -25,6 +30,9 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
         try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			Connection con =DriverManager.getConnection(url,user,pass);
+			
+			
+			
 			
 			Statement stmt=con.createStatement();  
 			String query = "SELECT balance FROM customers WHERE custAccNo ="+ search;
@@ -52,31 +60,49 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
         try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			Connection con =DriverManager.getConnection(url,user,pass);
+			Connection con1 =DriverManager.getConnection(url1,user,pass);
+			
 			
 			Statement stmt=con.createStatement();  
+			Statement stmt1=con1.createStatement();  
 			
 			
 			String query = "SELECT balance FROM customers WHERE custAccNo ="+ accNo;
+			
 			ResultSet rs=stmt.executeQuery(query);  
+			ResultSet rs1=stmt1.executeQuery(query); 
+			
 			float returnVal =0;
+			float returnVal1 =0;
 			while (rs.next()) {
 				String tempVal = rs.getString("balance");
 				   returnVal = Float.valueOf(tempVal);
 				                      
 				                    
 				}
+			while (rs1.next()) {
+				String tempVal = rs1.getString("balance");
+				   returnVal1 = Float.valueOf(tempVal);
+				                      
+				                    
+				}
+			if(returnVal ==returnVal1) {
+				returnVal = returnVal + amount;
+				
+				
+				
+				query = "UPDATE customers SET balance="+returnVal+" WHERE custAccNo="+accNo;
+				stmt.executeUpdate(query);  
+				stmt1.executeUpdate(query);  
+				
+				
+				con.close(); 
+				return  "---****-----*****---Money Deposited---****-----*****---";
+			}
+			else {
+				return  "---****-----*****---Server Down---****-----*****---";
+			}
 			
-			returnVal = returnVal + amount;
-			
-			
-			
-			query = "UPDATE customers SET balance="+returnVal+" WHERE custAccNo="+accNo;
-			stmt.executeUpdate(query);  
-			
-			
-			
-			con.close(); 
-			return  "---****-----*****---Money Deposited---****-----*****---";
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -94,36 +120,55 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
         try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			Connection con =DriverManager.getConnection(url,user,pass);
+			Connection con1 =DriverManager.getConnection(url1,user,pass);
 			
 			Statement stmt=con.createStatement();  
-			
+			Statement stmt1=con1.createStatement();  
 			
 			String query = "SELECT balance FROM customers WHERE custAccNo ="+ accNo;
 			ResultSet rs=stmt.executeQuery(query);  
+			ResultSet rs1=stmt1.executeQuery(query);  
+			
 			float returnVal =0;
+			float returnVal1 =0;
 			while (rs.next()) {
 				String tempVal = rs.getString("balance");
 				   returnVal = Float.valueOf(tempVal);
 				                      
 				                    
 			}
-			if(returnVal>=amount) {
+			while (rs1.next()) {
+				String tempVal = rs1.getString("balance");
+				   returnVal1 = Float.valueOf(tempVal);
+				                      
+				                    
+			}
+			if(returnVal ==returnVal1) {
+				if(returnVal>=amount) {
+					
+					returnVal = returnVal - amount;
+				}
+				else {
+					String ret = "Not enough Money In your Account.Your current Balance is:"+Float.toString(returnVal);
+					return ret;
+				}
 				
-				returnVal = returnVal - amount;
+				
+				query = "UPDATE customers SET balance="+returnVal+" WHERE custAccNo="+accNo;
+				stmt.executeUpdate(query);  
+				stmt1.executeUpdate(query);  
+				
+				
+				
+				con.close(); 
+				con1.close(); 
+				return  "---****-----*****---Money Withdrawn---****-----*****---";
 			}
 			else {
-				String ret = "Not enough Money In your Account.Your current Balance is:"+Float.toString(returnVal);
-				return ret;
+				return  "---****-----*****---Server Down---****-----*****---";
 			}
 			
 			
-			query = "UPDATE customers SET balance="+returnVal+" WHERE custAccNo="+accNo;
-			stmt.executeUpdate(query);  
-			
-			
-			
-			con.close(); 
-			return  "---****-----*****---Money Withdrawn---****-----*****---";
 		}
 		catch(Exception e) {
 			e.printStackTrace();

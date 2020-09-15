@@ -11,7 +11,7 @@ public class LoadBalanceMain {
 
     public static void loadBalance() {
  
-        doGetServer(new RandomLoadBalance());
+        doGetServer(new RoundRobin());
     
     }
 
