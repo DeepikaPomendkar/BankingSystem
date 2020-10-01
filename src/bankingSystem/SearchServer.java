@@ -11,7 +11,7 @@ public class SearchServer {
             ///Create the object of the interface
 
             Search obj = new SearchQuery();
-
+            
             //rmi registry within sever
             //port number 1900     
             LocateRegistry.createRegistry(1900);
