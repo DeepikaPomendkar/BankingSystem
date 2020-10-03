@@ -13,7 +13,8 @@ public class SearchServer {
             Search obj = new SearchQuery();
             
             //rmi registry within sever
-            //port number 1900     
+            //port number 1900   
+           
             LocateRegistry.createRegistry(1900);
             Naming.rebind("rmi://localhost:1900"+"/pikachu",obj);
             
@@ -30,6 +31,11 @@ public class SearchServer {
             LocateRegistry.createRegistry(1904);
             Naming.rebind("rmi://localhost:1904"+"/pikachu",obj);
             
+            
+            /// connect to the backup server
+            
+            LocateRegistry.createRegistry(1905);
+            Naming.rebind("rmi://localhost:1905"+"/charmander",obj);
             
             /// try and connect to children 
             
