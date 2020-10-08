@@ -12,6 +12,8 @@ import java.time.format.DateTimeFormatter; // Import the DateTimeFormatter class
 import java.util.Date; 
 import java.text.ParseException; 
 import java.text.SimpleDateFormat; 
+import java.time.Instant;
+import java.util.ArrayList;
 
 //C:\Program Files\Java\jdk-14.0.1\bin\javaw.exe -Dfile.encoding=Cp1252 -classpath "C:\Users\DeepiakP\eclipse-work-space\bankingSystem\bin;D:\mysql-connector-java-8.0.21\mysql-connector-java-8.0.21\mysql-connector-java-8.0.21.jar" bankingSystem.SearchServer
 public class SearchQuery extends UnicastRemoteObject implements Search {
@@ -25,6 +27,7 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	String url1 ="jdbc:mysql://localhost:3306/bankingbackup?serverTimezone=UTC";
 	
 	
+	ArrayList<String> arrayOfCurrentUsers = new ArrayList<String>();
 	
    
 
@@ -39,6 +42,11 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
      
         String dateString[] = new String[2];
         try {
+        	
+        	
+        	
+        	
+        	
         	Class.forName("com.mysql.cj.jdbc.Driver");
 			Connection con =DriverManager.getConnection(url,user,pass);
 			Connection con1 =DriverManager.getConnection(url1,user,pass);
@@ -92,12 +100,17 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 				return "Your Account Balance is:"+ String.valueOf(returnVal);
 				
 			}
+			
+			
+			
 		}
+        
+
 		catch(Exception e) {
 			e.printStackTrace();
 			return e.toString();
 		}
-
+        
         
     }
     public String deposit(String accNo,float amount) throws RemoteException{
@@ -113,6 +126,17 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	    
 	    System.out.println("After formatting: " + formattedDate);
         try {
+        	
+
+        	if(arrayOfCurrentUsers.contains(accNo)) {
+        		return "Your account is being accessed currently.Come back later.";
+        	}
+        	else {
+        		arrayOfCurrentUsers.add(accNo);
+        	}
+        	Thread.sleep(6000);  ///Add delay because in real life situation there is a delay sometimes 
+        	
+        	
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			Connection con =DriverManager.getConnection(url,user,pass);
 			Connection con1 =DriverManager.getConnection(url1,user,pass);
@@ -180,8 +204,13 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 			
 			con.close(); 
 			con1.close(); 
+			arrayOfCurrentUsers.remove(accNo);
 			return  "---****-----*****---Money Deposited---****-----*****---";
 			
+		}
+        catch(InterruptedException e1) {
+			Thread.currentThread().interrupt();
+			return e1.toString();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -204,6 +233,15 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	    String dateString[] = new String[2];
 	    
         try {
+        	
+        	if(arrayOfCurrentUsers.contains(accNo)) {
+        		return "Your account is being accessed currently.Come back later.";
+        	}
+        	else {
+        		arrayOfCurrentUsers.add(accNo);
+        	}
+        	Thread.sleep(6000);  ///Add delay because in real life situation there is a delay sometimes 
+        	
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			Connection con =DriverManager.getConnection(url,user,pass);
 			Connection con1 =DriverManager.getConnection(url1,user,pass);
@@ -278,9 +316,14 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 			
 			con.close(); 
 			con1.close(); 
+			arrayOfCurrentUsers.remove(accNo);
 			return  "---****-----*****---Money Withdrawn---****-----*****---";
 
 			
+		}
+        catch(InterruptedException e1) {
+			Thread.currentThread().interrupt();
+			return e1.toString();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -319,6 +362,13 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	    String target =(String) map.get(position);
         return target;
 	}
+    public long getSystemTime() {  
+        // Calculating Epoch time on server
+     	
+        long time = Instant.now().toEpochMilli();
+        System.out.println("This is the current time on the server, "+ time);
+        return time;  
+     }  
         
      
 

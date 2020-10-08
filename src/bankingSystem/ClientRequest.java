@@ -1,4 +1,8 @@
 package bankingSystem;
+import java.time.Instant;
+import java.time.Clock;
+import java.time.Duration;
+
 import java.io.IOException;
 import java.util.*;  
 import java.io.InputStream;
@@ -17,10 +21,36 @@ public class ClientRequest {
         ClientRequest c = new ClientRequest();
         String position ="";
         String urlName ="";
+        Clock clientClock = Clock.systemUTC();
+        long start = Instant.now().toEpochMilli();
+		System.out.print("Start :");
+		System.out.println(start);
         try{
         	///Master Server Load Balancer
         	try {
+        		
+        		
 	            Search access1 = (Search)Naming.lookup("rmi://localhost:1900"+"/pikachu");
+	            long serverTime = access1.getSystemTime();
+	            System.out.println("Server time :"+ serverTime);
+				long end = Instant.now().toEpochMilli(); 
+				System.out.print("End :");
+				System.out.println(end);
+				// Calulate RTT
+				long rtt = (end-start)/2;
+				System.out.println("RTT "+ rtt);
+
+				// Calcuate updatedTime to set the client clock with RTT delay
+				long updatedTime = serverTime+rtt;
+				
+				// Calculate offset
+				Duration diff = Duration.ofMillis(updatedTime - clientClock.instant().toEpochMilli());
+				
+				// Set Client clock based on offset to server time
+				clientClock = clientClock.offset(clientClock, diff);
+				System.out.println("\nNew Client Time "+ clientClock.instant().toEpochMilli());
+				System.out.println("\n");
+	            
 	            position = access1.getFreeServer();
 	            conditionOfSystem=1;
 //	            int x = 9/0;

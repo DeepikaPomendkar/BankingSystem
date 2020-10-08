@@ -14,6 +14,9 @@ public interface Search extends Remote{
     public String withdraw(String accNo,float amount) throws RemoteException;
 
     public String deposit(String accNo,float amount) throws RemoteException;
+    
+    long getSystemTime() throws RemoteException;  
+
 
 
 
