@@ -14,7 +14,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat; 
 import java.time.Instant;
 import java.util.ArrayList;
-
+import java.util.Random;
 //C:\Program Files\Java\jdk-14.0.1\bin\javaw.exe -Dfile.encoding=Cp1252 -classpath "C:\Users\DeepiakP\eclipse-work-space\bankingSystem\bin;D:\mysql-connector-java-8.0.21\mysql-connector-java-8.0.21\mysql-connector-java-8.0.21.jar" bankingSystem.SearchServer
 public class SearchQuery extends UnicastRemoteObject implements Search {
 	private static Integer position = 1;
@@ -29,20 +29,104 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	
 	ArrayList<String> arrayOfCurrentUsers = new ArrayList<String>();
 	
-   
+	
+	
+	//////////Election Algo
+	int noOfPossibleProcesses = 40;
+	
+	
+	static HashMap<Integer,List<Integer>> electionInfo=new HashMap<Integer,List<Integer>>();
+	
+	
+	 int coordinator =1;
+	
+	int currentNumberOfProcess = 0;
+	
+	int isQueringDone = 0;
+	//////////////////////////////
 
     SearchQuery() throws RemoteException{
         super();
     }
+    ////////Select a Coordinator 
+     public void selectACoordinator(int currentProcess) throws RemoteException {
+    	
 
+    	System.out.println(currentProcess);
+    	
+    	
+		electionInfo.entrySet().forEach(entry->{
+			System.out.println(entry.getKey() + " Status: " + entry.getValue().get(0)+" Priority: "+entry.getValue().get(1));  
+			System.out.println();
+			
+			if(entry.getKey()>currentProcess)
+			{
+				
+				if(entry.getValue().get(0)==1) {
+//					
+					coordinator = entry.getKey();
+					System.out.println("Message sent from:"+Integer.toString(currentProcess)+"to:"+Integer.toString(entry.getKey()) );
+				}
+				else {
+					System.out.println("Message sent from:"+Integer.toString(currentProcess)+"to:"+Integer.toString(entry.getKey())+" But process is dead" );
+				}
+				
+			}
+		    
+		 });
+		
+		System.out.println("The coordinator is process "+ coordinator);
+    	
+    }
+     
+     //////////////////////////////////////
 
     public String queryAccount(String accNo) throws RemoteException{
+    	
+    	
+    	////////////////////////////////////From here 
+    	if(currentNumberOfProcess >40) {
+    		return "Too much load";
+    	}
+    	else {
+    		currentNumberOfProcess = currentNumberOfProcess +1;
+    	}
+    	
+
+		electionInfo.put(currentNumberOfProcess, Arrays.asList(1,currentNumberOfProcess));
+    		
+
+    	try {
+    		int sleepTime = 50000/currentNumberOfProcess;
+    		
+        	Thread.sleep(sleepTime);
+    	}
+    	catch(Exception e1) {
+    		System.out.println(e1.toString());
+    	}
+    	
+    	
+    	if(isQueringDone ==0) {
+    		Random random = new Random();
+        	
+        	int processWhoFoundOut = random.nextInt(currentNumberOfProcess);
+        	
+        	System.out.println("Process "+processWhoFoundOut+" found out coordinator is dead");
+        	selectACoordinator(processWhoFoundOut);
+        	isQueringDone =1;
+    	}
+    	
+    	
+    	
+    	
+    	
+    	
+    	////////////////////////////////////////////////////////////////////Till here i election algo
         System.out.println("Client is quering the bank account .......");
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
      
         String dateString[] = new String[2];
         try {
-        	
         	
         	
         	
@@ -97,6 +181,9 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 				else if (difference_In_Time<0) {
 					returnVal = returnVal1;
 				}
+				
+//				electionInfo.put(currentNumberOfProcess, Arrays.asList(0,currentNumberOfProcess));
+//				System.out.println(currentNumberOfProcess+"    "+electionInfo.get(currentNumberOfProcess).get(0)); 
 				return "Your Account Balance is:"+ String.valueOf(returnVal);
 				
 			}
@@ -127,14 +214,15 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	    System.out.println("After formatting: " + formattedDate);
         try {
         	
-
-        	if(arrayOfCurrentUsers.contains(accNo)) {
-        		return "Your account is being accessed currently.Come back later.";
+        	while(arrayOfCurrentUsers.contains(accNo)) {
+//        	if(arrayOfCurrentUsers.contains(accNo)) {
+        		System.out.println("Account busy wait");
+//        		return "Your account is being accessed currently.Come back later.";
         	}
-        	else {
+        	if(!arrayOfCurrentUsers.contains(accNo)) {
         		arrayOfCurrentUsers.add(accNo);
         	}
-        	Thread.sleep(6000);  ///Add delay because in real life situation there is a delay sometimes 
+        	Thread.sleep(1);  ///Add delay because in real life situation there is a delay sometimes 
         	
         	
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -234,10 +322,12 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	    
         try {
         	
-        	if(arrayOfCurrentUsers.contains(accNo)) {
-        		return "Your account is being accessed currently.Come back later.";
+        	while(arrayOfCurrentUsers.contains(accNo)) {
+//            	if(arrayOfCurrentUsers.contains(accNo)) {
+            		System.out.println("Account busy wait");
+//            		return "Your account is being accessed currently.Come back later.";
         	}
-        	else {
+        	if(!arrayOfCurrentUsers.contains(accNo)) {
         		arrayOfCurrentUsers.add(accNo);
         	}
         	Thread.sleep(6000);  ///Add delay because in real life situation there is a delay sometimes 
@@ -342,22 +432,23 @@ public class SearchQuery extends UnicastRemoteObject implements Search {
 	    map.put(3,"1903");  
 	    map.put(4,"1904");  
 	    
- 
-		 if (limit>=10) {
-			 if (position > 4) {
-	         	System.out.println(position);
+//	    System.out.println(limit);
+		 if (limit>9) {
+			 
+			 if (position >= 4) {
+	         	System.out.println("In here"+position);
 	             position = 1;
 	             limit = 0;
 	         }
 			 else {
-	         
+				 limit = 0;
 				 position++;
 			 }
 		 }
 		 limit = limit +1;
             
         
-	    System.out.println(position);
+//	    System.out.println(position);
 	    
 	    String target =(String) map.get(position);
         return target;
